@@ -34,9 +34,48 @@ using(var connection = new SqlConnection(connectionString))
   }
 }
 ```
-
 ## Tell SQL Server to write binary file...
 
 Once SQL Server has the contents of the file in a varbinary column, we can tell SQL Server to read that varbinary and write it out to a file.  We have a couple of options available to achieve this. The first is using the command line utility bcp.exe and the second is to use the ADO object "ADODB.Stream" to write the bytes out to a file.
 
-#fiehwoihefejfpowjef
+### bcp
+```sql
+CREATE PROCEDURE [dbo].[ExportBinaryFileForInstaller]
+(
+  @filenameWithoutPath nvarchar(255),
+  @destinationPathEndingWithSlash nvarchar(255),
+  @adminUserName nvarchar(255),
+  @adminPassword nvarchar(255),
+  @databaseName nvarchar(255)
+)
+AS
+BEGIN
+  DECLARE @formatFile nvarchar(255), @binaryFile nvarchar(255)
+
+  SELECT @formatFile = @destinationPathEndingWithSlash + 'exportbinaryfile.fmt'
+  SELECT @binaryFile = @destinationPathEndingWithSlash + @filenameWithoutPath
+
+  DECLARE @command nvarchar(4000)
+
+  SELECT @command = 'echo 10.0 > "'+ @formatFile + '"'
+  EXEC xp_cmdshell @command
+
+  SELECT @command = 'echo 1 >> "'+ @formatFile + '"'
+  EXEC xp_cmdshell @command
+
+  SELECT @command = 'echo 1 SQLBINARY 0 0 "" 1 Data "" >> "'+ @formatFile + '"'
+  EXEC xp_cmdshell @command
+
+  SELECT @command = 'bcp "SELECT Data FROM Installer_Temp WHERE Filename = ''' + @filenameWithoutPath + '''"'
+                    + ' queryout "' + @binaryFile + '"'
+                    + ' -S localhost'
+                    + ' -U ' + @adminUserName
+                    + ' -P ' + @adminPassword
+                    + ' -d ' + @databaseName
+                    + ' -f ' + @formatFile
+  EXEC xp_cmdshell @command
+
+  SELECT @command = 'del ' + @formatFile
+  EXEC xp_cmdshell @command
+END
+```
