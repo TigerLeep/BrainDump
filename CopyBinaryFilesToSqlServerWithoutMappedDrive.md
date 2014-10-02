@@ -9,6 +9,7 @@
 ## Read binary File...
 
 To send the binary file to SQL Server, we first read the bytes of the file into byte array.  Then we use ADO.NET to INSERT them into a table with a varbinary column along with a unique key (in the example below the unique key is the filename).
+### SQL
 ```sql
 CREATE TABLE [dbo].[BinaryTransfer](
 	[Filename] [nvarchar](255) NOT NULL,
@@ -16,6 +17,7 @@ CREATE TABLE [dbo].[BinaryTransfer](
 )
 
 ```
+### C# 
 ```c#
 string connectionString = "...";
 string filename = @"C:\PathToMyFile\MyBinaryFile.dll";
@@ -79,3 +81,12 @@ BEGIN
   EXEC xp_cmdshell @command
 END
 ```
+### ADODB.Stream
+```sql
+[TODO]
+```
+### Hex String
+```
+[TODO]
+```
+
